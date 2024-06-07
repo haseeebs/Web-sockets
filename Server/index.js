@@ -7,7 +7,7 @@ const wss = new Websocket.Server({
 wss.on('connection', (ws) => {
     console.log('Server is running...');
     ws.on('message', (data) => {
-        console.log(data.toString()); // Convert buffer to string (if data is UTF-8 encoded)
-    })
-    ws.send('Hii from server...')
+        ws.send(data.toString());
+        // console.log(data.toString()); // Convert buffer to string (if data is UTF-8 encoded)
+    });
 })
