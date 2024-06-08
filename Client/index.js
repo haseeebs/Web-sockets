@@ -7,22 +7,23 @@ const server = new WebSocket(URL);
 
 submitButton.disabled = true;
 
+const generateMessageEntry = (name, message) => {
+    let newMessage = document.createElement('div');
+    newMessage.textContent = `${name} : ${message}`;
+    messages.appendChild(newMessage);
+}
+
 const sendMessage = () => {
     const text = inputMessage.value.trim();
     if (text === "") return;
-
+    generateMessageEntry('Client', text)
     inputMessage.value = "";
-    let newMessage = document.createElement('div');
-    newMessage.textContent = `Client: ${text}`;
-    messages.appendChild(newMessage);
     server.send(text);
 };
 
 server.onmessage = (event) => {
     const { data } = event;
-    const newServerMessage = document.createElement('div');
-    newServerMessage.textContent = `Server: ${data}`;
-    messages.appendChild(newServerMessage);
+    generateMessageEntry('Server', data);
 };
 
 submitButton.addEventListener('click', sendMessage);

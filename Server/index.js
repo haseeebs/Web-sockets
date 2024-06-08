@@ -4,10 +4,12 @@ const wss = new Websocket.Server({
     port: 8080
 });
 
+const clients = [];
+
 wss.on('connection', (ws) => {
-    console.log('Server is running...');
+    console.log(`Server is running...${ws}`);
+    clients.push(ws)
     ws.on('message', (data) => {
-        ws.send(data.toString());
-        // console.log(data.toString()); // Convert buffer to string (if data is UTF-8 encoded)
+        clients.forEach(client => client.send(data.toString()));
     });
 })
