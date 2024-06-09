@@ -16,14 +16,23 @@ const generateMessageEntry = (name, message) => {
 const sendMessage = () => {
     const text = inputMessage.value.trim();
     if (text === "") return;
-    generateMessageEntry('Client', text)
+    // generateMessageEntry('Client', text)
     inputMessage.value = "";
-    server.send(text);
+    server.send(JSON.stringify({
+        type: 'message',
+        payload: {
+            message: text
+        }
+    }));
 };
 
 server.onmessage = (event) => {
-    const { data } = event;
-    generateMessageEntry('Server', data);
+    const data = JSON.parse(event.data);
+    
+    if (data.type === 'message') {
+        const message = data.payload.message;
+        generateMessageEntry('Server', message);
+    }
 };
 
 submitButton.addEventListener('click', sendMessage);
@@ -35,6 +44,15 @@ inputMessage.addEventListener('keypress', (event) => {
 
 server.onopen = () => {
     submitButton.disabled = false;
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('roomId');
+
+    server.send(JSON.stringify({
+        type: 'join',
+        payload: {
+            roomId: roomId
+        }
+    }))
 };
 
 server.onerror = (error) => {
