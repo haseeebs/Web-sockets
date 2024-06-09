@@ -1,15 +1,30 @@
+const express = require('express');
 const Websocket = require('ws');
+const path = require('path');
+
+const app = express();
+app.use(express.static(path.join(__dirname, '../Client')));
+
+const server = app.listen(8080, () => {
+    console.log('Express server is running on port 8080...');
+})
 
 const wss = new Websocket.Server({
-    port: 8080
+    server,
+    verifyClient: (info) => {
+        // console.log(info);
+        return false;
+    }
 });
 
-const clients = [];
-
 wss.on('connection', (ws) => {
-    console.log(`Server is running...${ws}`);
-    clients.push(ws)
+    console.log(`Websocket server is running on port 8080...`);
+
     ws.on('message', (data) => {
-        clients.forEach(client => client.send(data.toString()));
+        wss.clients.forEach(client => {
+            if (client.readyState === Websocket.OPEN) {
+                client.send(data.toString())
+            }
+        })
     });
 })

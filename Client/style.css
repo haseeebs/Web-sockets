@@ -60,3 +60,7 @@ body {
 #submit:active {
     background-color: #1e7e34;
 }
+#submit:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}
