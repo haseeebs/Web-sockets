@@ -1,22 +1,24 @@
+// DOM Elements
 const messages = document.getElementById('messages');
 const inputMessage = document.getElementById('inputMessage');
 const submitButton = document.getElementById('submit');
+const roomPopup = document.getElementById('roomPopup');
+const enterRoomButton = document.getElementById('enterRoom');
+const roomIdInput = document.getElementById('roomId');
 
-const URL = 'ws://localhost:8080/websocket';
-const server = new WebSocket(URL);
-
+// Initialize
 submitButton.disabled = true;
 
+// Helper Functions
 const generateMessageEntry = (name, message) => {
     let newMessage = document.createElement('div');
     newMessage.textContent = `${name} : ${message}`;
     messages.appendChild(newMessage);
-}
+};
 
 const sendMessage = () => {
     const text = inputMessage.value.trim();
     if (text === "") return;
-    // generateMessageEntry('Client', text)
     inputMessage.value = "";
     server.send(JSON.stringify({
         type: 'message',
@@ -26,40 +28,63 @@ const sendMessage = () => {
     }));
 };
 
-server.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    
-    if (data.type === 'message') {
-        const message = data.payload.message;
-        generateMessageEntry('Server', message);
-    }
-};
+// WebSocket Setup
+let server;
 
-submitButton.addEventListener('click', sendMessage);
-inputMessage.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-        sendMessage();
-    }
-});
+const URL = 'ws://localhost:8080/websocket';
+const urlParams = new URLSearchParams(window.location.search);
+const roomId = urlParams.get('roomId');
 
-server.onopen = () => {
-    submitButton.disabled = false;
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('roomId');
+if (roomId) {
+    roomPopup.style.display = 'none'; // Hide the popup if roomId is present in the URL
 
-    server.send(JSON.stringify({
-        type: 'join',
-        payload: {
-            roomId: roomId
+    server = new WebSocket(URL);
+
+    server.onopen = () => {
+        submitButton.disabled = false;
+
+        server.send(JSON.stringify({
+            type: 'join',
+            payload: {
+                roomId: roomId
+            }
+        }));
+    };
+
+    server.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'message') {
+            const message = data.payload.message;
+            generateMessageEntry('Server', message);
         }
-    }))
-};
+    };
 
-server.onerror = (error) => {
-    console.error('WebSocket Error:', error);
-};
+    server.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+    };
 
-server.onclose = (event) => {
-    console.log('WebSocket closed:', event);
-    submitButton.disabled = true;
-};
+    server.onclose = (event) => {
+        console.log('WebSocket closed:', event);
+        submitButton.disabled = true;
+    };
+
+    submitButton.addEventListener('click', sendMessage);
+    inputMessage.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    });
+} else {
+    // Show the popup if no roomId is present in the URL
+    roomPopup.style.display = 'block';
+}
+
+// Event Listeners
+enterRoomButton.addEventListener('click', () => {
+    const roomId = roomIdInput.value.trim();
+    if (roomId === "") return;
+
+    // Redirect to the same page with the roomId as a query parameter
+    window.location.search = `?roomId=${roomId}`;
+});

@@ -1,0 +1,11 @@
+{
+    "name": "chat-app-using-websocket",
+    "version": "1.0.0",
+    "scripts": {
+        "build:client": "echo 'No build step for client'",
+        "build:server": "cd server && npm install && npm run build",
+        "build": "npm run build:client && npm run build:server",
+        "start": "cd server && npm start"
+    },
+    "dependencies": {}
+}
